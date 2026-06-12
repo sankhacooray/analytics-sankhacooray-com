@@ -1,0 +1,23 @@
+{
+  "name": "analytics-sankhacooray-com",
+  "version": "0.1.0",
+  "description": "Apps Script web-app proxy: aggregates visitor stats from the GA4 Data API for the whole sankhacooray.com network and serves a small cached, per-host JSON blob to every public site.",
+  "scripts": {
+    "push": "clasp_config_auth=../.clasprc.json clasp push",
+    "pull": "clasp_config_auth=../.clasprc.json clasp pull",
+    "deploy": "node deploy.js",
+    "open": "clasp_config_auth=../.clasprc.json clasp open-script",
+    "logs": "clasp_config_auth=../.clasprc.json clasp tail-logs",
+    "status": "clasp_config_auth=../.clasprc.json clasp show-file-status",
+    "url": "clasp_config_auth=../.clasprc.json clasp list-deployments"
+  },
+  "author": "Sankha Cooray",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^3.3.0",
+    "@types/google-apps-script": "^2.0.8"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

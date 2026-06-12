@@ -1,0 +1,5 @@
+{
+  "_comment": "Copy this to ~/.claude/claude-activity.json and fill in. This file holds the shared INGEST secret and the proxy /exec URL; it stays on your machine only — never commit it, never put it in a public page. The token must match the CLAUDE_INGEST_TOKEN Script Property on the analytics Apps Script project.",
+  "proxyUrl": "https://script.google.com/macros/s/AKfycbwvNZxtG3yOd2YUCDjRxUt9x9BcDP2St-ywC8WcecI_TcqirM3crgTW0qaR_712JTdhdw/exec",
+  "token": "PASTE_SAME_SECRET_AS_CLAUDE_INGEST_TOKEN"
+}
