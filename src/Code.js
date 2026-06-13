@@ -29,6 +29,11 @@
  * Routing: a single GET endpoint.
  *   ?host=fold.sankhacooray.com  — scope the `site` block to this host.
  *                                   Omit to get network numbers only.
+ *   ?scope=network               — return the FULL per-site breakdown
+ *                                   (every host's today/7d/30d, ranked)
+ *                                   for the central dashboard card on the
+ *                                   main site. Slicing the cached blob,
+ *                                   so it costs no extra GA quota.
  *   ?refresh=1                   — bypass cache (dev only; honour-based,
  *                                   since the endpoint is public).
  */
@@ -43,9 +48,14 @@ function doGet(e) {
     }
 
     var refresh = params.refresh === '1';
-    var host    = normalizeHost_(params.host);
+    var blob    = getStatsCached_(refresh);  // network-wide, cached
 
-    var blob = getStatsCached_(refresh);     // network-wide, cached
+    // Central dashboard wants every site at once, not one host's slice.
+    if (params.scope === 'network') {
+      return jsonResponse_(buildNetworkResponse_(blob));
+    }
+
+    var host = normalizeHost_(params.host);
     return jsonResponse_(buildResponse_(blob, host));
   } catch (err) {
     return jsonResponse_({
@@ -81,6 +91,52 @@ function buildResponse_(blob, host) {
     site: site,
     rank: rank,
     totalSites: blob.last30d.order.length,
+    network: {
+      realtime: blob.realtime,
+      today:    blob.today.total,
+      last7d:   blob.last7d.total,
+      last30d:  blob.last30d.total
+    },
+    cachedAt: blob.cachedAt
+  };
+}
+
+/**
+ * buildNetworkResponse_(blob) — shape the cached blob into the full
+ * per-site payload the central dashboard card reads.
+ *
+ * `sites` is one row per host, ranked by 30-day users (the property's
+ * own users-descending order), each carrying its today / 7d / 30d
+ * users+pageviews so the card can show a leaderboard with a freshness
+ * column. Realtime stays network-wide only — the GA realtime API has no
+ * hostName dimension, so per-site "live" isn't available; the card shows
+ * the one network-wide live figure under `network.realtime`.
+ */
+function buildNetworkResponse_(blob) {
+  // Canonical ordering is the 30-day ranking; append any host that has
+  // shorter-window traffic but no 30-day row yet (brand-new sites), so a
+  // site that launched today still appears on the board.
+  var order = blob.last30d.order.slice();
+  var seen  = {};
+  order.forEach(function (h) { seen[h] = true; });
+  [blob.last7d.order, blob.today.order].forEach(function (o) {
+    o.forEach(function (h) { if (!seen[h]) { seen[h] = true; order.push(h); } });
+  });
+
+  var sites = order.map(function (host, i) {
+    return {
+      host:    host,
+      rank:    i + 1,
+      today:   sliceHost_(blob.today,   host),
+      last7d:  sliceHost_(blob.last7d,  host),
+      last30d: sliceHost_(blob.last30d, host)
+    };
+  });
+
+  return {
+    scope: 'network',
+    sites: sites,
+    totalSites: sites.length,
     network: {
       realtime: blob.realtime,
       today:    blob.today.total,

@@ -69,7 +69,32 @@ quota. Thousands of public hits → a handful of API calls per hour.
 | Param      | Example                        | Effect                                   |
 |------------|--------------------------------|------------------------------------------|
 | `host`     | `fold.sankhacooray.com`        | Scope the `site` block to this host.     |
+| `scope`    | `network`                      | Return the full per-site breakdown (every host's today/7d/30d, ranked) for the central dashboard card. |
 | `refresh`  | `1`                            | Bypass cache (dev only; honour-based).   |
+
+`?scope=network` slices the same cached blob into one row per host, so it
+costs no extra GA quota:
+
+```jsonc
+{
+  "scope": "network",
+  "sites": [
+    { "host": "fold.sankhacooray.com", "rank": 1,
+      "today":   { "users": 12, "pageviews": 30 },
+      "last7d":  { "users": 60, "pageviews": 150 },
+      "last30d": { "users": 240, "pageviews": 600 } }
+    // … one row per host, ranked by 30-day users
+  ],
+  "totalSites": 15,
+  "network": {
+    "realtime": { "activeUsers": 3 },   // network-wide only (no per-host realtime)
+    "today":    { "users": 40,   "pageviews": 110 },
+    "last7d":   { "users": 280,  "pageviews": 700 },
+    "last30d":  { "users": 1200, "pageviews": 3100 }
+  },
+  "cachedAt": "2026-06-13T08:00:00.000Z"
+}
+```
 
 ---
 
