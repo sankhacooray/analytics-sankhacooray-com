@@ -219,3 +219,19 @@ with any GA4 Data API report (new dimensions, events, device/source
 breakdowns) and surface them in the badge via `sankha-analytics.js`. The
 response shape in `Code.js` (`buildResponse_`) is the contract the client
 reads — keep those field names stable and the sites keep working.
+
+## Owner's excluded browsers — `?source=me`
+
+`cdn.sankhacooray.com/me` marks a browser as the owner's (cookie
+`sankha_me=1` on `.sankhacooray.com`), and `sankha-analytics.js` then skips GA
+there. Because those browsers never reach GA, they report themselves to this
+proxy instead (`src/Me.js`): the switch page on every change, and the shared
+script once a day. The private console's **My devices** tab reads the list.
+
+| Name            | Value                                                       |
+|-----------------|-------------------------------------------------------------|
+| `ME_LIST_TOKEN` | optional; defaults to `CLAUDE_INGEST_TOKEN`. The console's `ME_LIST_TOKEN` must equal whichever is used |
+
+Listing and forgetting fail closed while it is unset. Pings are public but
+store only a random id, a browser/OS label, an optional name and the last
+host, capped at 60 devices (the least recently seen one is evicted).

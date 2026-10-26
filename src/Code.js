@@ -47,6 +47,11 @@ function doGet(e) {
       return jsonResponse_(handleClaudeGet_(params));
     }
 
+    // Owner's excluded browsers (Me.js) — also no GA quota.
+    if (params.source === 'me') {
+      return jsonResponse_(handleMeGet_(params));
+    }
+
     var refresh = params.refresh === '1';
     var blob    = getStatsCached_(refresh);  // network-wide, cached
 
